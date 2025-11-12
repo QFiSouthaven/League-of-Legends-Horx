@@ -15,6 +15,13 @@ pywin32>=306; platform_system=="Windows"
 websockets>=12.0
 asyncio-mqtt>=0.16.1
 
+# Web framework
+Flask>=3.0.0
+Flask-SocketIO>=5.3.0
+Flask-CORS>=4.0.0
+python-socketio>=5.10.0
+eventlet>=0.33.0
+
 # Utilities
 pyyaml>=6.0
 pydantic>=2.0.0

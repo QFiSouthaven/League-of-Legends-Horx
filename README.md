@@ -1,6 +1,18 @@
-# LOL-HORX - League of Legends Strategic Overlay
+# LOL-HORX - League of Legends Strategic Analysis Dashboard
 
-A hybrid application with a Python backend and Electron frontend that provides strategic information overlay for League of Legends. Built with a "Safety First" design principle, featuring sandboxed processes, secure IPC, and adaptive jitter control.
+A hybrid application with a Python backend and web/Electron frontend that provides strategic information analysis for League of Legends. Built with a "Safety First" design principle, featuring sandboxed processes, secure IPC, and adaptive jitter control.
+
+## ✨ New: Web Dashboard Available!
+
+**Now with browser-based dashboard!** Access real-time game analysis from any device on your network.
+
+```bash
+# Quick Start with Web Dashboard (Recommended)
+python main.py --web
+# Open http://localhost:5000 in your browser
+```
+
+See [WEB_DASHBOARD.md](WEB_DASHBOARD.md) for complete web dashboard documentation.
 
 ## Architecture Overview
 
@@ -131,7 +143,24 @@ Create `src/config/app_config.json` to customize settings:
 
 ## Running the Application
 
-### Full Application
+### Web Dashboard (Recommended)
+
+```bash
+python main.py --web
+```
+
+Then open your browser to `http://localhost:5000`
+
+**Features:**
+- 📊 Real-time analytics dashboard
+- ⚙️ Live configuration controls
+- 📱 Access from any device on your network
+- 🎨 Modern, responsive UI
+- 🔄 WebSocket real-time updates
+
+See [WEB_DASHBOARD.md](WEB_DASHBOARD.md) for complete documentation.
+
+### Electron Overlay (Classic)
 
 ```bash
 python main.py
@@ -139,6 +168,7 @@ python main.py
 
 **Options:**
 ```bash
+python main.py --web              # Use web dashboard (RECOMMENDED)
 python main.py --dev              # Enable development mode
 python main.py --mode passive     # Run in passive mode
 python main.py --config /path     # Use custom config directory

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOL-HORX Dashboard - Strategic Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <h1>🎮 LOL-HORX Dashboard</h1>
+                <span class="subtitle">Strategic Game Analysis</span>
+            </div>
+            <div class="header-right">
+                <div class="connection-indicator" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+                <button class="btn btn-primary" id="engineToggle">Start Engine</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="dashboard-content">
+            <!-- Sidebar Controls -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>⚙️ Controls</h3>
+
+                    <div class="control-group">
+                        <label>Operational Mode</label>
+                        <select id="modeSelector" class="form-control">
+                            <option value="standard">Standard Mode</option>
+                            <option value="passive">Passive Mode</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <h4>Features</h4>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="feature_objective_timers" checked>
+                            <span>Objective Timers</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="feature_cs_tracker" checked>
+                            <span>CS Tracker</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="feature_purchase_suggestions" checked>
+                            <span>Purchase Suggestions</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="feature_map_awareness" checked>
+                            <span>Map Awareness</span>
+                        </label>
+                    </div>
+
+                    <button class="btn btn-secondary btn-block" id="saveConfig">Save Configuration</button>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>📊 Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Game Time:</span>
+                        <span class="stat-value" id="gameTime">0:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Frames Analyzed:</span>
+                        <span class="stat-value" id="frameCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Analysis FPS:</span>
+                        <span class="stat-value" id="analysisFPS">0</span>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>ℹ️ System Info</h3>
+                    <div class="info-text" id="systemInfo">
+                        <p><strong>Status:</strong> <span id="engineStatus">Idle</span></p>
+                        <p><strong>Capture:</strong> <span id="captureStatus">Ready</span></p>
+                        <p><strong>Last Update:</strong> <span id="lastUpdate">Never</span></p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Panel -->
+            <main class="main-panel">
+                <!-- Game State Overview -->
+                <section class="panel-section">
+                    <h2>🎯 Current Game State</h2>
+                    <div class="game-state-grid">
+                        <div class="state-card">
+                            <div class="card-icon">⏱️</div>
+                            <div class="card-content">
+                                <h4>Game Time</h4>
+                                <p class="large-text" id="currentGameTime">0:00</p>
+                            </div>
+                        </div>
+                        <div class="state-card">
+                            <div class="card-icon">⚔️</div>
+                            <div class="card-content">
+                                <h4>CS Score</h4>
+                                <p class="large-text" id="currentCS">0</p>
+                                <p class="small-text" id="csPerMin">0.0 CS/min</p>
+                            </div>
+                        </div>
+                        <div class="state-card">
+                            <div class="card-icon">💰</div>
+                            <div class="card-content">
+                                <h4>Gold</h4>
+                                <p class="large-text" id="currentGold">0g</p>
+                            </div>
+                        </div>
+                        <div class="state-card">
+                            <div class="card-icon">📈</div>
+                            <div class="card-content">
+                                <h4>Performance</h4>
+                                <p class="large-text"><span class="rating-badge" id="csRating">N/A</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Objective Timers -->
+                <section class="panel-section">
+                    <h2>🐉 Objective Timers</h2>
+                    <div id="objectiveTimers" class="timer-grid">
+                        <div class="empty-state">
+                            <p>No active timers. Waiting for objective kills...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CS Tracker Chart -->
+                <section class="panel-section">
+                    <h2>📊 CS Per Minute History</h2>
+                    <div class="chart-container">
+                        <canvas id="csChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Recent Events Log -->
+                <section class="panel-section">
+                    <h2>📜 Event Log</h2>
+                    <div id="eventLog" class="event-log">
+                        <div class="log-entry log-info">
+                            <span class="log-time">--:--</span>
+                            <span class="log-message">System initialized. Start the analysis engine to begin.</span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Right Sidebar - Minimap & Alerts -->
+            <aside class="right-sidebar">
+                <div class="sidebar-section">
+                    <h3>🗺️ Map Awareness</h3>
+                    <div class="minimap-container" id="minimapDisplay">
+                        <div class="minimap-placeholder">
+                            <p>Minimap monitoring active</p>
+                        </div>
+                        <div id="minimapAlerts" class="minimap-alerts"></div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>🛒 Purchase Suggestions</h3>
+                    <div id="purchaseSuggestions" class="purchase-list">
+                        <div class="empty-state">
+                            <p>No suggestions available</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>⚠️ Active Alerts</h3>
+                    <div id="activeAlerts" class="alerts-list">
+                        <!-- Alerts will be populated here -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <!-- Include Dashboard JavaScript -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

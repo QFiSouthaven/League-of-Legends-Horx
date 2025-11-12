@@ -31,16 +31,18 @@ class ApplicationManager:
     Coordinates the Python backend and Electron frontend.
     """
 
-    def __init__(self, config_path: str = None, dev_mode: bool = False):
+    def __init__(self, config_path: str = None, dev_mode: bool = False, web_mode: bool = False):
         """
         Initialize the application manager.
 
         Args:
             config_path: Optional path to configuration directory
             dev_mode: Enable development mode features
+            web_mode: Use web UI instead of Electron overlay
         """
         self.config_path = config_path
         self.dev_mode = dev_mode
+        self.web_mode = web_mode
 
         # Load configuration
         self.config_loader = ConfigLoader(config_path)
@@ -49,14 +51,16 @@ class ApplicationManager:
         # Process handles
         self.analysis_process = None
         self.electron_process = None
+        self.web_process = None
 
         # State
         self.running = False
 
         print("="*60)
-        print("LOL-HORX - League of Legends Strategic Overlay")
+        print("LOL-HORX - League of Legends Strategic Analysis")
         print("="*60)
         print(f"Mode: {self.config.mode}")
+        print(f"UI: {'Web Dashboard' if web_mode else 'Electron Overlay'}")
         print(f"Development Mode: {dev_mode}")
         print("="*60)
 
@@ -71,17 +75,22 @@ class ApplicationManager:
         signal.signal(signal.SIGTERM, self._signal_handler)
 
         try:
-            # Start analysis engine in separate process
-            self._start_analysis_engine()
+            if self.web_mode:
+                # Web mode: Start Flask web server directly
+                self._start_web_server()
+            else:
+                # Electron mode: Start analysis engine + overlay
+                # Start analysis engine in separate process
+                self._start_analysis_engine()
 
-            # Give analysis engine time to start IPC server
-            time.sleep(2)
+                # Give analysis engine time to start IPC server
+                time.sleep(2)
 
-            # Start Electron overlay
-            self._start_electron_overlay()
+                # Start Electron overlay
+                self._start_electron_overlay()
 
-            # Monitor processes
-            self._monitor_processes()
+                # Monitor processes
+                self._monitor_processes()
 
         except KeyboardInterrupt:
             print("\n\nShutdown requested...")
@@ -218,11 +227,31 @@ class ApplicationManager:
                 self.running = False
                 break
 
+    def _start_web_server(self):
+        """Start the Flask web server"""
+        print("\nStarting web dashboard...")
+        print("  Dashboard will be available at: http://localhost:5000")
+        print("  Press Ctrl+C to stop\n")
+
+        # Import and run Flask app
+        from app import main as web_main
+        web_main()
+
     def stop(self):
         """Stop the application"""
         print("\nStopping LOL-HORX...")
 
         self.running = False
+
+        # Stop web server
+        if self.web_process:
+            print("  Stopping web server...")
+            try:
+                self.web_process.terminate()
+                self.web_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.web_process.kill()
+            print("  Web server stopped")
 
         # Stop Electron
         if self.electron_process:
@@ -255,7 +284,7 @@ class ApplicationManager:
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        description="LOL-HORX - League of Legends Strategic Overlay"
+        description="LOL-HORX - League of Legends Strategic Analysis Dashboard"
     )
 
     parser.add_argument(
@@ -280,9 +309,15 @@ def main():
     )
 
     parser.add_argument(
+        '--web',
+        action='store_true',
+        help='Use web dashboard instead of Electron overlay (RECOMMENDED)'
+    )
+
+    parser.add_argument(
         '--test-engine',
         action='store_true',
-        help='Test analysis engine only (no Electron)'
+        help='Test analysis engine only (no UI)'
     )
 
     args = parser.parse_args()
@@ -290,7 +325,8 @@ def main():
     # Create application manager
     app = ApplicationManager(
         config_path=args.config,
-        dev_mode=args.dev
+        dev_mode=args.dev,
+        web_mode=args.web
     )
 
     # Override mode if specified
