@@ -1,0 +1,20 @@
+# Python Backend Dependencies
+# Core libraries
+numpy>=1.24.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# OCR
+pytesseract>=0.3.10
+
+# Screen capture (Windows-specific will need additional setup)
+mss>=9.0.1
+pywin32>=306; platform_system=="Windows"
+
+# IPC and networking
+websockets>=12.0
+asyncio-mqtt>=0.16.1
+
+# Utilities
+pyyaml>=6.0
+pydantic>=2.0.0
